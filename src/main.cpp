@@ -1,3 +1,9 @@
+/* Chris Schultz
+ * 6 Feb 2020
+ * Learn OpenGL Project
+ * main.cpp
+ */
+
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 
