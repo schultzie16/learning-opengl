@@ -1,47 +1,66 @@
+#include <GL/glew.h>
 #include <GLFW/glfw3.h>
-#include <iostream>
-using namespace std;
 
-void processInput(GLFWwindow *w);
+#include <iostream>
+
+using std::cout;
+using std::endl;
+
+/* FUNCTION PROTOTYPES */
+void framebufferSizeCallback(GLFWwindow* window, int width, int height);
+void processInput(GLFWwindow* window);
 
 int main(){
+
     cout << "A simple C++ program to test the GLFW library in VS Code!" << endl;
     cout << "---------------------------------------------------------" << endl << endl;
 
-    /* initialize and determine window properties */
+    /* INITIALIZE WINDOW AND SET PROPERTIES */
 
     glfwInit();
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-    /* create game window */
-    // glfwCreateWindow(): width, height, window name, monitor, share
-    GLFWwindow* window = glfwCreateWindow(800, 600, "OpenGL Test", NULL, NULL);
-    if (window == NULL){
-        cout << "Failed to create GLFW Window!" << endl;
-        glfwTerminate();
-        return -1;
-    }
-    glfwMakeContextCurrent(window);
+    GLFWwindow* myWindow = glfwCreateWindow(800, 600, "OpenGL Demo", NULL, NULL);
+    glfwMakeContextCurrent(myWindow);
 
-    while(!glfwWindowShouldClose(window)){
-        processInput(window);
+    /* INITALIZE GLEW LIBRARY */
+    glewExperimental = GL_TRUE;
 
-        glClearColor(0.51f, 0.85f, 0.98f, 1.0f);
+    /* SET PROPERTIES OF VIEWPORT */
+
+    glViewport(0, 0, 800, 600);
+    glfwSetFramebufferSizeCallback(myWindow, framebufferSizeCallback);
+
+    /* WINDOW IS RUNNING */
+
+    while(!glfwWindowShouldClose(myWindow)){
+        // handle input
+        processInput(myWindow);
+
+        // render
+        glClearColor(.11f, .44f, .64f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
 
-        // glfwSwapBuffers() swaps the color buffer used to render this iteration
-        glfwSwapBuffers(window);
-        /// glfwPollEvents() checks for events and updates the window state
+        // check events and swap the buffers
+        glfwSwapBuffers(myWindow);
         glfwPollEvents();
     }
 
     glfwTerminate();
+
     return 0;
 }
 
-void processInput(GLFWwindow *w){
-    if (glfwGetKey(w, GLFW_KEY_SPACE) == GLFW_PRESS){
-        glfwSetWindowShouldClose(w, true);
+/* FUNCTION DEFINITIONS */
+
+void framebufferSizeCallback(GLFWwindow* window, int width, int height){
+    glViewport(0, 0, width, height);
+}
+
+void processInput(GLFWwindow* window){
+    if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS){
+        glfwSetWindowShouldClose(window, true);
     }
 }

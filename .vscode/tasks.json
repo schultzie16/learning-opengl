@@ -18,8 +18,9 @@
                     "${workspaceFolder}/src/*.cpp",
                     "-lGL",
                     "-lglfw",
+                    "-lGLEW",
                     "-o",
-                    "firstopengl"
+                    "opengldemo"
                 ]
             }
         }

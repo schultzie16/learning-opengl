@@ -8,7 +8,7 @@
             "name": "(gdb) Launch",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/firstopengl",
+            "program": "${workspaceFolder}/opengldemo",
             "args": [],
             "stopAtEntry": true,
             "cwd": "${workspaceFolder}",
