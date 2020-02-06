@@ -5,6 +5,7 @@ This is a personal project for me to learn OpenGL, primarily following the tutor
 
 ### What tools are you using?
 GLFW - OpenGL library
+
 GLEW - OpenGL Extension Wrangler
 
 ### Useful Learning Resources
