@@ -23,10 +23,16 @@ const char *vertexShaderSource = "#version 330 core\n"
     "}\0";
 
 // fragment shader calculates the color output
-const char *fragmentShaderSource = "#version 330 core\n"
+const char *fragmentBlueShaderSource = "#version 330 core\n"
     "out vec4 FragColor;\n"
     "void main(){\n"
-    "   FragColor = vec4(0.58f, 0.09f, 0.47f, 1.0f);\n"
+    "   FragColor = vec4(0.57f, 0.79f, 0.98f, 1.0f);\n"
+    "}\0";
+
+const char *fragmentRedShaderSource = "#version 330 core\n"
+    "out vec4 FragColor;\n"
+    "void main(){\n"
+    "   FragColor = vec4(0.91f, 0.12f, 0.39f, 1.0f);\n"
     "}\0";
 
 // function prototypes
@@ -73,65 +79,91 @@ int main(){
     }
 
     // build, compile, and test the fragment shader
-    unsigned int fragmentShader;
-    fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-    glShaderSource(fragmentShader, 1, &fragmentShaderSource, NULL);
-    glCompileShader(fragmentShader);
+    unsigned int fragmentBlueShader, fragmentRedShader;
+    fragmentBlueShader = glCreateShader(GL_FRAGMENT_SHADER);
+    glShaderSource(fragmentBlueShader, 1, &fragmentBlueShaderSource, NULL);
+    glCompileShader(fragmentBlueShader);
+    fragmentRedShader = glCreateShader(GL_FRAGMENT_SHADER);
+    glShaderSource(fragmentRedShader, 1, &fragmentRedShaderSource, NULL);
+    glCompileShader(fragmentRedShader);
 
-    glGetShaderiv(fragmentShader, GL_COMPILE_STATUS, &success);
+    glGetShaderiv(fragmentBlueShader, GL_COMPILE_STATUS, &success);
     if (!success){
-        glGetShaderInfoLog(vertexShader, sizeof(infoLog), NULL, infoLog);
-        cout << "ERROR: Fragment shader compilation failed: " 
+        glGetShaderInfoLog(fragmentBlueShader, sizeof(infoLog), NULL, infoLog);
+        cout << "ERROR: Fragment blue shader compilation failed: " 
+             << infoLog << endl;
+    }
+
+    glGetShaderiv(fragmentRedShader, GL_COMPILE_STATUS, &success);
+    if (!success){
+        glGetShaderInfoLog(fragmentBlueShader, sizeof(infoLog), NULL, infoLog);
+        cout << "ERROR: Fragment red shader compilation failed: "
              << infoLog << endl;
     }
 
     // shader program links the outputs and inputs of each shader
     //   here, vertex shader --> fragment shader
-    unsigned int shaderProgram;
-    shaderProgram = glCreateProgram();
-    glAttachShader(shaderProgram, vertexShader);
-    glAttachShader(shaderProgram, fragmentShader);
-    glLinkProgram(shaderProgram);
+    unsigned int blueShaderProgram, redShaderProgram;
+    blueShaderProgram = glCreateProgram();
+    redShaderProgram = glCreateProgram();
+    glAttachShader(blueShaderProgram, vertexShader);
+    glAttachShader(redShaderProgram, vertexShader);
+    glAttachShader(blueShaderProgram, fragmentBlueShader);
+    glAttachShader(redShaderProgram, fragmentRedShader);
+    glLinkProgram(blueShaderProgram);
+    glLinkProgram(redShaderProgram);
+
     glDeleteShader(vertexShader);
-    glDeleteShader(fragmentShader);
+    glDeleteShader(fragmentBlueShader);
+    glDeleteShader(fragmentRedShader);
 
     /* ----- VERTEX DATA AND BUFFER ATTRIBUTES ----- */
 
-    // define vertex data
-    float vertices[] = {
-        -0.5f, 0.5f, 0.0f, // top-left
-        0.5f, 0.5f, 0.0f, // top-right
-        -0.5f, -0.5f, 0.0f, // bottom-left
-        0.5f, -0.5f, 0.0f, // bottom-right
+    // define vertex data for blue triangle
+    float blueTriVertices[] = {
+        -0.75f, -0.5f, 0.0f, // left triangle - lower left
+        -0.5f, 0.5f, 0.0f, // left triangle - upper
+        -0.25f, -0.5f, 0.0f, // left triangle - lower right
+    };
+
+    // define vertex data for red triangle
+    float redTriVertices[] = {
+        0.25f, -0.5f, 0.0f,
+        0.5f, 0.5f, 0.0f,
+        0.75f, -0.5f, 0.0f
     };
 
     unsigned int indices[] = {
-        0, 2, 3,
-        0, 1, 3
+        0, 1, 2,
+        3, 4, 5
     };
 
-    unsigned int VAO, VBO, EBO;
+    unsigned int bVAO, bVBO, rVAO, rVBO;
 
-    glGenVertexArrays(1, &VAO);
-    glGenBuffers(1, &VBO);
-    glGenBuffers(1, &EBO);
+    glGenVertexArrays(1, &bVAO);
+    glGenVertexArrays(1, &rVAO);
+    glGenBuffers(1, &bVBO);
+    glGenBuffers(1, &rVBO);
 
     // bind the vertex array object first, bind and set vertex buffers, and
     //   configure attributes
-    glBindVertexArray(VAO);
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), 
-        indices, GL_STATIC_DRAW);
-
+    glBindVertexArray(bVAO);
+    glBindBuffer(GL_ARRAY_BUFFER, bVBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(blueTriVertices), blueTriVertices, GL_STATIC_DRAW);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 
         3 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
 
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-    glBindVertexArray(0);
+    // same for the red triangle
+    glBindVertexArray(rVAO);
+    glBindBuffer(GL_ARRAY_BUFFER, rVBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(redTriVertices), redTriVertices, GL_STATIC_DRAW);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 
+        3 * sizeof(float), (void*)0);
+    glEnableVertexAttribArray(0);
+
+    // glBindBuffer(GL_ARRAY_BUFFER, 0);
+    // glBindVertexArray(0);
 
     /* ----- RENDER LOOP ----- */
 
@@ -143,10 +175,15 @@ int main(){
         glClearColor(.11f, .44f, .64f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
 
-        // draw a triangle
-        glUseProgram(shaderProgram);
-        glBindVertexArray(VAO);
-        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+        // draw the blue triangle
+        glUseProgram(blueShaderProgram);
+        glBindVertexArray(bVAO);
+        glDrawArrays(GL_TRIANGLES, 0, 3);
+
+        // draw the red triangle
+        glUseProgram(redShaderProgram);
+        glBindVertexArray(rVAO);
+        glDrawArrays(GL_TRIANGLES, 0, 3);
 
         // check events and swap the buffers
         glfwSwapBuffers(myWindow);
@@ -154,9 +191,10 @@ int main(){
     }
 
     // deallocate and terminate program
-    glDeleteVertexArrays(1, &VAO);
-    glDeleteBuffers(1, &VBO);
-    glDeleteBuffers(1, &EBO);
+    glDeleteVertexArrays(1, &bVAO);
+    glDeleteVertexArrays(1, &rVAO);
+    glDeleteBuffers(1, &bVBO);
+    glDeleteBuffers(1, &rVBO);
 
     glfwTerminate();
 
