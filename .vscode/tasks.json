@@ -15,7 +15,7 @@
                 "command": "g++",
                 "args": [
                     "-g",
-                    "${workspaceFolder}/src/*.cpp",
+                    "${workspaceFolder}/src/cpp/*.cpp",
                     "-lGL",
                     "-lglfw",
                     "-lGLEW",
