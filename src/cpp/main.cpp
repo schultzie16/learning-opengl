@@ -87,7 +87,7 @@ int main(){
     /* ----- TEXTURE SET UP ----- */
 
     // load and create the texture
-    unsigned int texture;
+    unsigned int texture, texture2;
     glGenTextures(1, &texture);
     glBindTexture(GL_TEXTURE_2D, texture);
 
@@ -101,6 +101,7 @@ int main(){
 
     // load the image, create the texture, generate mipmaps
     int width, height, nrChannels;
+    stbi_set_flip_vertically_on_load(true);
     unsigned char *data = stbi_load("textures/wall.jpg", &width, &height, &nrChannels, 0);
     if (data){
         // args: texture target, mipmap level, texture storage format, width, height, always 0,
@@ -113,9 +114,30 @@ int main(){
     }
     stbi_image_free(data);
 
+    glGenTextures(1, &texture2);
+    glBindTexture(GL_TEXTURE_2D, texture2);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+    data = stbi_load("textures/peter.jpg", &width, &height, &nrChannels, 0);
+    if (data){
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+        glGenerateMipmap(GL_TEXTURE_2D);
+    }
+    else {
+        cout << "Failed to load texture!" << endl;
+    }
+    stbi_image_free(data);
+
     /* ----- RENDER LOOP ----- */
 
     float offset = 0.5f;
+    rainbowShader.use();
+    glUniform1i(glGetUniformLocation(rainbowShader.ID, "myTexture"), 0);
+    rainbowShader.setInt("myTexture2", 1);
+
 
     while(!glfwWindowShouldClose(myWindow)){
         // handle input
@@ -125,10 +147,13 @@ int main(){
         glClearColor(.11f, .44f, .64f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
 
+        glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, texture);
+        glActiveTexture(GL_TEXTURE1);
+        glBindTexture(GL_TEXTURE_2D, texture2);
+
         glBindVertexArray(rVAO);
         rainbowShader.use();
-        rainbowShader.setFloat("xOffset", offset);
         glDrawArrays(GL_TRIANGLES, 0, 3);
 
         // check events and swap the buffers
