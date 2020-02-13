@@ -4,10 +4,11 @@
  * main.cpp
  */
 
-
+#define STB_IMAGE_IMPLEMENTATION
 
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
+#include "../header/stb_image.h"
 
 #include "../header/RainbowShader.hpp"
 
@@ -51,10 +52,10 @@ int main(){
 
     // define vertex data for red triangle
     float redTriVertices[] = {
-          /* positions */      /* colors */
-         0.5f, -0.5f, 0.0f,  1.0f, 0.0f, 0.0f,   /* lower right corner */
-        -0.5f, -0.5f, 0.0f,  0.0f, 1.0f, 0.0f,   /* lower left corner */
-         0.0f,  0.5f, 0.0f,  0.0f, 0.0f, 1.0f    /* upper point */
+          /* positions */      /* colors */     /* texture coord */
+         0.5f, -0.5f, 0.0f,  1.0f, 0.0f, 0.0f,      1.0f, 0.0f,   /* lower right corner */
+        -0.5f, -0.5f, 0.0f,  0.0f, 1.0f, 0.0f,      0.0f, 0.0f,   /* lower left corner */
+         0.0f,  0.5f, 0.0f,  0.0f, 0.0f, 1.0f,      0.5f, 1.0f    /* upper point */
     };
 
     unsigned int rVAO, rVBO;
@@ -67,14 +68,50 @@ int main(){
     glBindVertexArray(rVAO);
     glBindBuffer(GL_ARRAY_BUFFER, rVBO);
     glBufferData(GL_ARRAY_BUFFER, sizeof(redTriVertices), redTriVertices, GL_STATIC_DRAW);
-    // set the position attributes - need to shift 6 floats to the right to get new value
+    
+    // position attribute
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 
-        6 * sizeof(float), (void*)0);
+        8 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
-    // same with the color attributes
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 
-        6 * sizeof(float), (void*) (3 * sizeof(float)));
+
+    // color atrribute
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE,
+        8 * sizeof(float), (void*)(3 * sizeof(float)));
     glEnableVertexAttribArray(1);
+    
+    // texture attribute
+    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 
+        8 * sizeof(float), (void*) (6 * sizeof(float)));
+    glEnableVertexAttribArray(2);
+
+    /* ----- TEXTURE SET UP ----- */
+
+    // load and create the texture
+    unsigned int texture;
+    glGenTextures(1, &texture);
+    glBindTexture(GL_TEXTURE_2D, texture);
+
+    // set the texture wrapping parameters
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
+    // set the texture filtering parameters
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+    // load the image, create the texture, generate mipmaps
+    int width, height, nrChannels;
+    unsigned char *data = stbi_load("textures/wall.jpg", &width, &height, &nrChannels, 0);
+    if (data){
+        // args: texture target, mipmap level, texture storage format, width, height, always 0,
+        //   format of source image, datatype of source image, image data
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+        glGenerateMipmap(GL_TEXTURE_2D);
+    }
+    else {
+        cout << "Failed to load texture!" << endl;
+    }
+    stbi_image_free(data);
 
     /* ----- RENDER LOOP ----- */
 
@@ -88,6 +125,7 @@ int main(){
         glClearColor(.11f, .44f, .64f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
 
+        glBindTexture(GL_TEXTURE_2D, texture);
         glBindVertexArray(rVAO);
         rainbowShader.use();
         rainbowShader.setFloat("xOffset", offset);
